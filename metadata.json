@@ -1,0 +1,6 @@
+{
+  "name": "Mana Experts",
+  "description": "Rural home-services marketplace for Bapatla, Andhra Pradesh with Customer, Technician, and Admin roles, trial-coin system, and complete Kotlin Jetpack Compose Android Studio project.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

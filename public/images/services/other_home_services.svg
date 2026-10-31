@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+      <rect width="640" height="480" fill="#F8FAFC"/>
+      <!-- Water Geyser & CCTV Dome Camera on Home Wall -->
+      <rect x="65" y="55" width="135" height="195" rx="28" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="5"/>
+      <circle cx="132" cy="195" r="16" fill="#EF4444"/>
+      <circle cx="265" cy="95" r="36" fill="#1E293B"/>
+      <circle cx="265" cy="95" r="14" fill="#38BDF8"/>
+      <!-- Multi-Skill Handyman Technician with Cordless Drill & Tool Box -->
+      <g transform="translate(445, 105)">
+        <path d="M-105,375 C-105,235 105,235 105,375 Z" fill="#10213A"/>
+        <rect x="-18" y="190" width="36" height="45" rx="12" fill="#B87644"/>
+        <ellipse cx="-6" cy="145" rx="52" ry="60" fill="#C6824E"/>
+        <path d="M-58,135 C-60,72 50,72 46,138 C34,102 -40,102 -58,135 Z" fill="#18181B"/>
+        <ellipse cx="-22" cy="142" rx="5" ry="4" fill="#18181B"/>
+        <ellipse cx="8" cy="142" rx="5" ry="4" fill="#18181B"/>
+        <path d="M-18,170 Q-6,178 8,170" fill="none" stroke="#18181B" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M-65,255 L-170,195" fill="none" stroke="#10213A" stroke-width="34" stroke-linecap="round"/>
+        <!-- Cordless Power Drill -->
+        <rect x="-235" y="165" width="68" height="32" rx="8" fill="#F97316"/>
+        <rect x="-195" y="192" width="22" height="38" rx="4" fill="#1E293B"/>
+        <line x1="-235" y1="181" x2="-268" y2="181" stroke="#64748B" stroke-width="6" stroke-linecap="round"/>
+      </g>
+    </svg>

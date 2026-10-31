@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+      <rect width="640" height="480" fill="#FAF9F6"/>
+      <!-- Freshly Painted Warm Terracotta/Teal Accent Wall -->
+      <path d="M0,0 L420,0 L420,480 L0,480 Z" fill="#0D9488"/>
+      <path d="M340,0 L490,0 L420,480 L340,480 Z" fill="#14B8A6"/>
+      <!-- Diagonal Roller Stroke Path -->
+      <rect x="275" y="45" width="145" height="260" rx="8" fill="#0F766E" opacity="0.5"/>
+      <!-- Paint Buckets in Foreground -->
+      <g transform="translate(65, 330)">
+        <rect x="0" y="0" width="95" height="115" rx="10" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="4"/>
+        <path d="M8,0 L8,38 Q22,55 32,35 L32,0 Z" fill="#F97316"/>
+        <rect x="18" y="48" width="60" height="32" rx="4" fill="#087F78"/>
+      </g>
+      <!-- Indian Painter with Extension Roller Pole & White Cap -->
+      <g transform="translate(465, 105)">
+        <path d="M-100,375 C-100,235 100,235 100,375 Z" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="3"/>
+        <rect x="-18" y="190" width="36" height="45" rx="12" fill="#B87644"/>
+        <ellipse cx="-6" cy="145" rx="50" ry="58" fill="#C6824E"/>
+        <!-- Painter Cap -->
+        <path d="M-58,128 C-58,72 48,72 48,128 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-width="3"/>
+        <path d="M-75,128 L48,128" stroke="#087F78" stroke-width="8" stroke-linecap="round"/>
+        <ellipse cx="-20" cy="145" rx="5" ry="4" fill="#18181B"/>
+        <ellipse cx="8" cy="145" rx="5" ry="4" fill="#18181B"/>
+        <path d="M-18,172 Q-6,180 8,172" fill="none" stroke="#18181B" stroke-width="3.5" stroke-linecap="round"/>
+        <!-- Paint Roller & Extension Handle -->
+        <line x1="-45" y1="265" x2="-155" y2="85" stroke="#F59E0B" stroke-width="10" stroke-linecap="round"/>
+        <rect x="-215" y="45" width="95" height="36" rx="14" fill="#F97316" stroke="#FFFFFF" stroke-width="4"/>
+      </g>
+    </svg>

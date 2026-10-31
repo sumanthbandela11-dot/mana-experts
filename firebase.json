@@ -1,0 +1,7 @@
+{
+  "firestore": {
+    "database": "ai-studio-manaexperts-9ab98bbd-c1ef-4605-83b4-310be7069b2b",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

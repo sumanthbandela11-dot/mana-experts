@@ -1,0 +1,693 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Authentication Primitives
+    function isSignedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    // Supports both Google OAuth and Email/Password authentication on Capacitor Android & Web
+    function isVerifiedUser() {
+      return isSignedIn();
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Server-verified owner account allowed only to bootstrap its own /admins/{uid} record
+    function isProvisionedOwnerBootstrapAccount() {
+      return isSignedIn() &&
+        request.auth.token.email_verified == true &&
+        request.auth.token.email == 'sumanth.bandela11@gmail.com';
+    }
+
+    // Trusted Admin Check: Requires server-side custom claim OR a provisioned document in /admins/{uid}
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // =========================================================================
+    // Validation Blueprints (Pillar 2: Anti-Update-Gap)
+    // =========================================================================
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'name', 'role', 'area', 'language', 'phoneVerified', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'name', 'email', 'role', 'area', 'language', 'phoneVerified', 'createdAt', 'updatedAt', 'serverCreatedAt', 'serverUpdatedAt']) &&
+        isValidId(data.uid) &&
+        data.name is string && data.name.size() >= 2 && data.name.size() <= 80 &&
+        (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
+        data.role is string && data.role in ['CUSTOMER', 'TECHNICIAN', 'ADMIN'] &&
+        data.area is string && data.area.size() >= 2 && data.area.size() <= 80 &&
+        data.language is string && data.language in ['en', 'te'] &&
+        data.phoneVerified is bool &&
+        data.createdAt is string && data.createdAt.size() <= 40 &&
+        data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+
+    function isValidUserPrivateContact(data) {
+      return data.keys().hasAll(['uid', 'email', 'phone', 'defaultAddress', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'phone', 'defaultAddress', 'updatedAt', 'serverUpdatedAt']) &&
+        isValidId(data.uid) &&
+        data.email is string && data.email.size() <= 120 &&
+        data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 20 &&
+        data.defaultAddress is string && data.defaultAddress.size() <= 300 &&
+        data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+
+    function isValidTechnicianProfile(data) {
+      return data.keys().hasAll([
+          'uid', 'name', 'phone', 'skills', 'area', 'experienceYears', 'bio',
+          'approvalStatus', 'isAvailable', 'coinBalance', 'totalEarnings',
+          'completedJobs', 'ratingAvg', 'ratingCount', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid', 'name', 'phone', 'skills', 'area', 'experienceYears', 'bio',
+          'approvalStatus', 'isAvailable', 'trialCoinsGranted', 'coinBalance', 'totalEarnings',
+          'completedJobs', 'ratingAvg', 'ratingCount', 'createdAt', 'updatedAt',
+          'serverCreatedAt', 'serverUpdatedAt'
+        ]) &&
+        isValidId(data.uid) &&
+        data.name is string && data.name.size() >= 2 && data.name.size() <= 80 &&
+        data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 20 &&
+        data.skills is list && data.skills.size() >= 1 && data.skills.size() <= 10 &&
+        data.skills[0] is string && data.skills[0].size() <= 64 &&
+        data.area is string && data.area.size() >= 2 && data.area.size() <= 80 &&
+        data.experienceYears is number && data.experienceYears >= 0 && data.experienceYears <= 60 &&
+        data.bio is string && data.bio.size() <= 300 &&
+        data.approvalStatus is string && data.approvalStatus in ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'] &&
+        data.isAvailable is bool &&
+        (!('trialCoinsGranted' in data) || data.trialCoinsGranted is bool) &&
+        data.coinBalance is int && data.coinBalance >= 0 && data.coinBalance <= 100000 &&
+        data.totalEarnings is number && data.totalEarnings >= 0 && data.totalEarnings <= 100000000 &&
+        data.completedJobs is int && data.completedJobs >= 0 && data.completedJobs <= 1000000 &&
+        data.ratingAvg is number && data.ratingAvg >= 0 && data.ratingAvg <= 5 &&
+        data.ratingCount is int && data.ratingCount >= 0 && data.ratingCount <= 1000000 &&
+        data.createdAt is string && data.createdAt.size() <= 40 &&
+        data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+
+    function isValidServiceCategory(data) {
+      return data.keys().hasAll([
+          'id', 'nameEn', 'nameTe', 'descriptionEn', 'descriptionTe',
+          'baseInspectionFee', 'iconName', 'enabled', 'sortOrder'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'nameEn', 'nameTe', 'descriptionEn', 'descriptionTe',
+          'baseInspectionFee', 'iconName', 'imageUrl', 'enabled', 'sortOrder', 'updatedAt', 'serverUpdatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        data.nameEn is string && data.nameEn.size() >= 2 && data.nameEn.size() <= 80 &&
+        data.nameTe is string && data.nameTe.size() >= 2 && data.nameTe.size() <= 80 &&
+        data.descriptionEn is string && data.descriptionEn.size() <= 240 &&
+        data.descriptionTe is string && data.descriptionTe.size() <= 240 &&
+        data.baseInspectionFee is number && data.baseInspectionFee >= 0 && data.baseInspectionFee <= 50000 &&
+        data.iconName is string && data.iconName.size() <= 40 &&
+        (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 240)) &&
+        data.enabled is bool &&
+        data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 1000 &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 40));
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll([
+          'id', 'customerId', 'customerName', 'serviceId', 'serviceNameEn', 'serviceNameTe',
+          'generalArea', 'problemDescription', 'preferredDate', 'preferredTimeSlot',
+          'photoNote', 'status', 'technicianId', 'technicianName', 'technicianPhone',
+          'labourCharges', 'rated', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'customerId', 'customerName', 'serviceId', 'serviceNameEn', 'serviceNameTe',
+          'generalArea', 'problemDescription', 'preferredDate', 'preferredTimeSlot',
+          'photoNote', 'hasUploadedPhoto', 'status', 'technicianId', 'technicianName', 'technicianPhone',
+          'labourCharges', 'rated', 'idempotencyKey', 'createdAt', 'updatedAt',
+          'serverCreatedAt', 'serverUpdatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.customerId) &&
+        data.customerName is string && data.customerName.size() >= 2 && data.customerName.size() <= 80 &&
+        isValidId(data.serviceId) &&
+        data.serviceNameEn is string && data.serviceNameEn.size() <= 80 &&
+        data.serviceNameTe is string && data.serviceNameTe.size() <= 80 &&
+        data.generalArea is string && data.generalArea.size() >= 2 && data.generalArea.size() <= 80 &&
+        data.problemDescription is string && data.problemDescription.size() >= 5 && data.problemDescription.size() <= 500 &&
+        data.preferredDate is string && data.preferredDate.size() <= 30 &&
+        data.preferredTimeSlot is string && data.preferredTimeSlot.size() <= 40 &&
+        data.photoNote is string && data.photoNote.size() <= 200 &&
+        (!('hasUploadedPhoto' in data) || data.hasUploadedPhoto is bool) &&
+        data.status is string && data.status in ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'WORK_COMPLETED', 'CONFIRMED', 'CANCELLED'] &&
+        data.technicianId is string && data.technicianId.size() <= 128 &&
+        data.technicianName is string && data.technicianName.size() <= 80 &&
+        data.technicianPhone is string && data.technicianPhone.size() <= 20 &&
+        data.labourCharges is number && data.labourCharges >= 0 && data.labourCharges <= 500000 &&
+        data.rated is bool &&
+        (!('idempotencyKey' in data) || (data.idempotencyKey is string && data.idempotencyKey.size() <= 160)) &&
+        data.createdAt is string && data.createdAt.size() <= 40 &&
+        data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+
+    function isValidBookingPrivateDetails(data) {
+      return data.keys().hasAll(['bookingId', 'customerId', 'customerPhone', 'fullAddress', 'landmark']) &&
+        data.keys().hasOnly(['bookingId', 'customerId', 'customerPhone', 'fullAddress', 'landmark', 'villageOrWard', 'createdAt', 'serverCreatedAt']) &&
+        isValidId(data.bookingId) &&
+        isValidId(data.customerId) &&
+        data.customerPhone is string && data.customerPhone.size() >= 10 && data.customerPhone.size() <= 20 &&
+        data.fullAddress is string && data.fullAddress.size() >= 5 && data.fullAddress.size() <= 300 &&
+        data.landmark is string && data.landmark.size() <= 120 &&
+        (!('villageOrWard' in data) || (data.villageOrWard is string && data.villageOrWard.size() <= 120)) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 40));
+    }
+
+    function isValidBookingProtectedPhoto(data) {
+      return data.keys().hasAll(['bookingId', 'customerId', 'fileName', 'mimeType', 'sizeBytes', 'dataUrl', 'createdAt']) &&
+        data.keys().hasOnly(['bookingId', 'customerId', 'fileName', 'mimeType', 'sizeBytes', 'width', 'height', 'dataUrl', 'createdAt', 'serverCreatedAt']) &&
+        isValidId(data.bookingId) &&
+        isValidId(data.customerId) &&
+        data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 120 &&
+        data.mimeType is string && data.mimeType in ['image/jpeg', 'image/png', 'image/webp'] &&
+        data.sizeBytes is int && data.sizeBytes > 0 && data.sizeBytes <= 5242880 &&
+        (!('width' in data) || (data.width is int && data.width >= 1 && data.width <= 10000)) &&
+        (!('height' in data) || (data.height is int && data.height >= 1 && data.height <= 10000)) &&
+        data.dataUrl is string && data.dataUrl.size() >= 30 && data.dataUrl.size() <= 700000 &&
+        data.dataUrl.matches('^data:image/(jpeg|png|webp);base64,.*') &&
+        data.createdAt is string && data.createdAt.size() <= 40;
+    }
+
+    function isValidCoinTransaction(data) {
+      return data.keys().hasAll(['id', 'technicianId', 'technicianName', 'delta', 'reason', 'bookingId', 'createdAt']) &&
+        data.keys().hasOnly([
+          'id', 'technicianId', 'technicianName', 'delta', 'prevBalance', 'balanceAfter',
+          'reason', 'reasonNote', 'bookingId', 'actorId', 'adminId', 'idempotencyKey', 'createdAt', 'serverCreatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.technicianId) &&
+        data.technicianName is string && data.technicianName.size() <= 80 &&
+        data.delta is int && data.delta != 0 && data.delta >= -10000 && data.delta <= 10000 &&
+        (!('prevBalance' in data) || (data.prevBalance is int && data.prevBalance >= 0 && data.prevBalance <= 100000)) &&
+        (!('balanceAfter' in data) || (data.balanceAfter is int && data.balanceAfter >= 0 && data.balanceAfter <= 100000)) &&
+        (!('prevBalance' in data) || !('balanceAfter' in data) || data.balanceAfter == data.prevBalance + data.delta) &&
+        data.reason is string && data.reason.size() >= 2 && data.reason.size() <= 160 &&
+        (!('reasonNote' in data) || (data.reasonNote is string && data.reasonNote.size() <= 240)) &&
+        data.bookingId is string && data.bookingId.size() <= 128 &&
+        (!('actorId' in data) || isValidId(data.actorId)) &&
+        (!('adminId' in data) || isValidId(data.adminId)) &&
+        (!('idempotencyKey' in data) || (data.idempotencyKey is string && data.idempotencyKey.size() <= 160)) &&
+        data.createdAt is string && data.createdAt.size() <= 40;
+    }
+
+    function isValidBookingCompletionRecord(data) {
+      return data.keys().hasAll([
+          'id', 'bookingId', 'customerId', 'technicianId', 'technicianName', 'serviceId',
+          'labourCharges', 'prevTechnicianEarnings', 'newTechnicianEarnings',
+          'prevCompletedJobs', 'newCompletedJobs', 'idempotencyKey', 'confirmedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'bookingId', 'customerId', 'technicianId', 'technicianName', 'serviceId',
+          'labourCharges', 'prevTechnicianEarnings', 'newTechnicianEarnings',
+          'prevCompletedJobs', 'newCompletedJobs', 'idempotencyKey', 'confirmedAt', 'serverCreatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        data.id == data.bookingId &&
+        isValidId(data.customerId) &&
+        isValidId(data.technicianId) &&
+        data.technicianName is string && data.technicianName.size() <= 80 &&
+        isValidId(data.serviceId) &&
+        data.labourCharges is int && data.labourCharges > 0 && data.labourCharges <= 500000 &&
+        data.prevTechnicianEarnings is number && data.prevTechnicianEarnings >= 0 &&
+        data.newTechnicianEarnings == data.prevTechnicianEarnings + data.labourCharges &&
+        data.prevCompletedJobs is int && data.prevCompletedJobs >= 0 &&
+        data.newCompletedJobs == data.prevCompletedJobs + 1 &&
+        data.idempotencyKey is string && data.idempotencyKey.size() <= 160 &&
+        data.confirmedAt is string && data.confirmedAt.size() <= 40;
+    }
+
+    function isValidServiceReview(data) {
+      return data.keys().hasAll(['id', 'bookingId', 'customerId', 'customerName', 'technicianId', 'rating', 'comment', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'bookingId', 'customerId', 'customerName', 'technicianId', 'serviceId', 'rating', 'comment', 'createdAt', 'serverCreatedAt']) &&
+        isValidId(data.id) &&
+        isValidId(data.bookingId) &&
+        isValidId(data.customerId) &&
+        data.customerName is string && data.customerName.size() <= 80 &&
+        isValidId(data.technicianId) &&
+        (!('serviceId' in data) || isValidId(data.serviceId)) &&
+        data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+        data.comment is string && data.comment.size() <= 400 &&
+        data.createdAt is string && data.createdAt.size() <= 40;
+    }
+
+    function isValidAppNotification(data) {
+      return data.keys().hasAll(['id', 'recipientId', 'titleEn', 'titleTe', 'messageEn', 'messageTe', 'type', 'bookingId', 'read', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'recipientId', 'titleEn', 'titleTe', 'messageEn', 'messageTe', 'type', 'bookingId', 'read', 'createdAt', 'serverCreatedAt']) &&
+        isValidId(data.id) &&
+        data.recipientId is string && data.recipientId.size() >= 1 && data.recipientId.size() <= 128 &&
+        data.titleEn is string && data.titleEn.size() <= 100 &&
+        data.titleTe is string && data.titleTe.size() <= 100 &&
+        data.messageEn is string && data.messageEn.size() <= 300 &&
+        data.messageTe is string && data.messageTe.size() <= 300 &&
+        data.type is string && data.type.size() <= 40 &&
+        data.bookingId is string && data.bookingId.size() <= 128 &&
+        data.read is bool &&
+        data.createdAt is string && data.createdAt.size() <= 40;
+    }
+
+    function isValidAppSettings(data) {
+      return data.keys().hasAll(['city']) &&
+        data.keys().hasOnly(['id', 'city', 'state', 'serviceAreas', 'activeAreas', 'trialCoinsForNewTech', 'trialCoinsDefault', 'coinCostPerLead', 'supportPhone', 'supportWhatsApp', 'updatedAt', 'serverUpdatedAt']) &&
+        data.city is string && data.city.size() <= 80;
+    }
+
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll(['uid', 'email', 'addedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'provisionedBy', 'addedAt', 'serverCreatedAt']) &&
+        isValidId(data.uid) &&
+        data.email is string && data.email.size() <= 120 &&
+        (!('provisionedBy' in data) || (data.provisionedBy is string && data.provisionedBy.size() <= 128)) &&
+        data.addedAt is string && data.addedAt.size() <= 40;
+    }
+
+    function isValidAdminAuditRecord(data) {
+      return data.keys().hasAll(['id', 'action', 'actorUid', 'targetId', 'summary', 'idempotencyKey', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'action', 'actorUid', 'targetId', 'summary', 'idempotencyKey', 'createdAt', 'serverCreatedAt']) &&
+        isValidId(data.id) &&
+        data.action in [
+          'TECHNICIAN_APPROVED',
+          'TECHNICIAN_REJECTED',
+          'TECHNICIAN_SUSPENDED',
+          'COIN_ADJUSTMENT',
+          'SERVICE_CREATED',
+          'SERVICE_UPDATED',
+          'SERVICE_REORDERED',
+          'SERVICE_TOGGLED',
+          'SERVICE_AREAS_UPDATED',
+          'ADMIN_PROVISIONED',
+          'LEGACY_IDENTITY_MIGRATED'
+        ] &&
+        isValidId(data.actorUid) &&
+        data.targetId is string && data.targetId.size() >= 1 && data.targetId.size() <= 128 &&
+        data.summary is string && data.summary.size() >= 2 && data.summary.size() <= 400 &&
+        data.idempotencyKey is string && data.idempotencyKey.size() <= 160 &&
+        data.createdAt is string && data.createdAt.size() <= 40;
+    }
+
+    // =========================================================================
+    // Collection Rules
+    // =========================================================================
+
+    // Connection health check endpoint
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // 1. Users (Public Profile + Role)
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin() || (isVerifiedUser() && resource.data.uid == request.auth.uid);
+
+      // Users cannot self-assign ADMIN unless they already satisfy isAdmin()
+      allow create: if isValidId(userId) &&
+        (isOwner(userId) || isAdmin()) &&
+        isValidUserProfile(incoming()) &&
+        incoming().uid == userId &&
+        incoming().phoneVerified == false &&
+        (incoming().role in ['CUSTOMER', 'TECHNICIAN'] || isAdmin());
+
+      allow update: if isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          (isOwner(userId) &&
+           (incoming().role == existing().role ||
+            (existing().role == 'CUSTOMER' &&
+             incoming().role == 'TECHNICIAN' &&
+             existsAfter(/databases/$(database)/documents/technicians/$(userId)))) &&
+           incoming().phoneVerified == existing().phoneVerified &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['name', 'email', 'role', 'area', 'language', 'updatedAt', 'serverUpdatedAt']))
+        );
+
+      // Isolated PII & Protected Upload Subcollection (Pillar 6)
+      match /private/{docId} {
+        allow get: if isValidId(userId) && isValidId(docId) && (isOwner(userId) || isAdmin());
+        allow list: if isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow create, update: if isValidId(userId) && isValidId(docId) &&
+          (isOwner(userId) || isAdmin()) && (
+            (docId == 'contact' && isValidUserPrivateContact(incoming()) && incoming().uid == userId) ||
+            (docId == 'photo_draft' && isValidBookingProtectedPhoto(incoming()) && incoming().customerId == userId)
+          );
+        allow delete: if isValidId(userId) && docId == 'photo_draft' && (isOwner(userId) || isAdmin());
+      }
+    }
+
+    // 2. Technicians
+    match /technicians/{techId} {
+      allow get: if isValidId(techId) && isVerifiedUser();
+      allow list: if isAdmin() || (isVerifiedUser() && (resource.data.approvalStatus == 'APPROVED' || resource.data.uid == request.auth.uid));
+
+      // Registration: Must start as PENDING with 0 coins, 0 earnings, and trialCoinsGranted == false
+      allow create: if isValidId(techId) &&
+        (isOwner(techId) || isAdmin()) &&
+        isValidTechnicianProfile(incoming()) &&
+        incoming().uid == techId && (
+          isAdmin() || (
+            incoming().approvalStatus == 'PENDING' &&
+            incoming().isAvailable == false &&
+            (!('trialCoinsGranted' in incoming()) || incoming().trialCoinsGranted == false) &&
+            incoming().coinBalance == 0 &&
+            incoming().totalEarnings == 0 &&
+            incoming().completedJobs == 0 &&
+            incoming().ratingCount == 0
+          )
+        );
+
+      allow update: if isValidId(techId) &&
+        isValidTechnicianProfile(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        // Durable trialCoinsGranted marker can never be reset from true back to false
+        (!('trialCoinsGranted' in existing()) || existing().trialCoinsGranted == false || incoming().trialCoinsGranted == true) && (
+          isAdmin() ||
+          // Action A: Technician updates availability (only if APPROVED) or profile details
+          (isOwner(techId) &&
+           incoming().approvalStatus == existing().approvalStatus &&
+           incoming().coinBalance == existing().coinBalance &&
+           incoming().totalEarnings == existing().totalEarnings &&
+           incoming().completedJobs == existing().completedJobs &&
+           (incoming().isAvailable == false || existing().approvalStatus == 'APPROVED') &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'skills', 'area', 'experienceYears', 'bio', 'isAvailable', 'trialCoinsGranted', 'updatedAt', 'serverUpdatedAt'])) ||
+          // Action B: Technician deducts 1 coin during atomic booking acceptance
+          (isOwner(techId) &&
+           existing().approvalStatus == 'APPROVED' &&
+           existing().isAvailable == true &&
+           existing().coinBalance >= 1 &&
+           incoming().coinBalance == existing().coinBalance - 1 &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['coinBalance', 'updatedAt', 'serverUpdatedAt'])) ||
+          // Action C: Customer confirmation updates technician completedJobs, totalEarnings, or rating
+          (isVerifiedUser() &&
+           existing().approvalStatus == 'APPROVED' &&
+           incoming().coinBalance == existing().coinBalance &&
+           incoming().approvalStatus == existing().approvalStatus &&
+           incoming().totalEarnings >= existing().totalEarnings &&
+           incoming().completedJobs >= existing().completedJobs &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['totalEarnings', 'completedJobs', 'ratingAvg', 'ratingCount', 'updatedAt', 'serverUpdatedAt']))
+        );
+
+      allow delete: if isValidId(techId) && isAdmin();
+    }
+
+    // 3. Service Categories
+    match /services/{serviceId} {
+      allow get, list: if true;
+      allow create: if isValidId(serviceId) && isValidServiceCategory(incoming()) && incoming().id == serviceId && (
+        isAdmin() ||
+        (!exists(/databases/$(database)/documents/services/$(serviceId)) &&
+         serviceId in ['electrician', 'plumber', 'ac_repair', 'appliance', 'carpenter', 'cleaning', 'painter', 'water_purifier'])
+      );
+      allow update: if isValidId(serviceId) && isAdmin() && isValidServiceCategory(incoming()) && incoming().id == serviceId;
+      allow delete: if isValidId(serviceId) && isAdmin();
+    }
+
+    // 4. Bookings & Protected Customer Contact Details
+    match /bookings/{bookingId} {
+      allow get: if isValidId(bookingId) && isVerifiedUser() && (
+        isAdmin() ||
+        resource.data.customerId == request.auth.uid ||
+        resource.data.technicianId == request.auth.uid ||
+        resource.data.status == 'PENDING'
+      );
+
+      allow list: if isVerifiedUser() && (
+        isAdmin() ||
+        resource.data.customerId == request.auth.uid ||
+        resource.data.technicianId == request.auth.uid ||
+        resource.data.status == 'PENDING'
+      );
+
+      // Customer creates booking in PENDING state with no technician assigned, only for an enabled service
+      allow create: if isValidId(bookingId) &&
+        isVerifiedUser() &&
+        isValidBooking(incoming()) &&
+        incoming().id == bookingId &&
+        (incoming().customerId == request.auth.uid || isAdmin()) &&
+        incoming().status == 'PENDING' &&
+        incoming().technicianId == '' &&
+        incoming().labourCharges == 0 &&
+        incoming().rated == false &&
+        exists(/databases/$(database)/documents/services/$(incoming().serviceId)) &&
+        get(/databases/$(database)/documents/services/$(incoming().serviceId)).data.enabled == true &&
+        existsAfter(/databases/$(database)/documents/bookings/$(bookingId)/private/details) &&
+        (!('hasUploadedPhoto' in incoming()) || incoming().hasUploadedPhoto == false ||
+         existsAfter(/databases/$(database)/documents/bookings/$(bookingId)/private/photo));
+
+      // Explicit Action-Based Booking State Machine Updates:
+      // PENDING -> ACCEPTED -> IN_PROGRESS -> WORK_COMPLETED -> CONFIRMED (or PENDING -> CANCELLED)
+      allow update: if isValidId(bookingId) &&
+        isValidBooking(incoming()) &&
+        incoming().id == existing().id &&
+        (incoming().customerId == existing().customerId || isAdmin()) &&
+        incoming().serviceId == existing().serviceId &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          // Action 1: Eligible, Approved, Available Technician Atomically Accepts Matching PENDING Booking (deducts 1 coin & writes deterministic ledger entry)
+          (isVerifiedUser() &&
+           existing().status == 'PENDING' &&
+           existing().technicianId == '' &&
+           existing().customerId != request.auth.uid &&
+           incoming().status == 'ACCEPTED' &&
+           incoming().technicianId == request.auth.uid &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'technicianId', 'technicianName', 'technicianPhone', 'updatedAt', 'serverUpdatedAt']) &&
+           get(/databases/$(database)/documents/technicians/$(request.auth.uid)).data.approvalStatus == 'APPROVED' &&
+           get(/databases/$(database)/documents/technicians/$(request.auth.uid)).data.isAvailable == true &&
+           existing().serviceId in get(/databases/$(database)/documents/technicians/$(request.auth.uid)).data.skills &&
+           existing().generalArea == get(/databases/$(database)/documents/technicians/$(request.auth.uid)).data.area &&
+           get(/databases/$(database)/documents/technicians/$(request.auth.uid)).data.coinBalance >= 1 &&
+           getAfter(/databases/$(database)/documents/technicians/$(request.auth.uid)).data.coinBalance ==
+             get(/databases/$(database)/documents/technicians/$(request.auth.uid)).data.coinBalance - 1 &&
+           existsAfter(/databases/$(database)/documents/coin_transactions/$(('ctx_accept_' + bookingId + '_' + request.auth.uid)))) ||
+          // Action 2: Assigned Technician Starts Work (ACCEPTED -> IN_PROGRESS)
+          (isVerifiedUser() &&
+           existing().status == 'ACCEPTED' &&
+           existing().technicianId == request.auth.uid &&
+           incoming().status == 'IN_PROGRESS' &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'serverUpdatedAt'])) ||
+          // Action 3: Assigned Technician Submits Validated Labour Charges (IN_PROGRESS -> WORK_COMPLETED)
+          (isVerifiedUser() &&
+           existing().status == 'IN_PROGRESS' &&
+           existing().technicianId == request.auth.uid &&
+           incoming().status == 'WORK_COMPLETED' &&
+           incoming().labourCharges is int &&
+           incoming().labourCharges > 0 &&
+           incoming().labourCharges <= 500000 &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'labourCharges', 'updatedAt', 'serverUpdatedAt'])) ||
+          // Action 4: Booking Customer Confirms Work Completion (WORK_COMPLETED -> CONFIRMED, records completion & earnings exactly once)
+          (isOwner(existing().customerId) &&
+           existing().status == 'WORK_COMPLETED' &&
+           incoming().status == 'CONFIRMED' &&
+           incoming().labourCharges == existing().labourCharges &&
+           !exists(/databases/$(database)/documents/booking_completions/$(bookingId)) &&
+           existsAfter(/databases/$(database)/documents/booking_completions/$(bookingId)) &&
+           getAfter(/databases/$(database)/documents/technicians/$(existing().technicianId)).data.totalEarnings ==
+             get(/databases/$(database)/documents/technicians/$(existing().technicianId)).data.totalEarnings + existing().labourCharges &&
+           getAfter(/databases/$(database)/documents/technicians/$(existing().technicianId)).data.completedJobs ==
+             get(/databases/$(database)/documents/technicians/$(existing().technicianId)).data.completedJobs + 1 &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'serverUpdatedAt'])) ||
+          // Action 5: Booking Customer Cancels Eligible PENDING Booking
+          (isOwner(existing().customerId) &&
+           existing().status == 'PENDING' &&
+           incoming().status == 'CANCELLED' &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'serverUpdatedAt'])) ||
+          // Action 6: Booking Customer Marks Booking as Rated after Confirmation
+          (isOwner(existing().customerId) &&
+           existing().status == 'CONFIRMED' &&
+           existing().rated == false &&
+           incoming().rated == true &&
+           incoming().diff(existing()).affectedKeys().hasOnly(['rated', 'updatedAt', 'serverUpdatedAt']))
+        );
+
+      // Protected Customer Contact, Full Address & Uploaded Photo Subcollection (never exposed in eligible request listings)
+      match /private/{docId} {
+        allow get: if isValidId(bookingId) && isValidId(docId) && isVerifiedUser() && (
+          isAdmin() ||
+          resource.data.customerId == request.auth.uid ||
+          (get(/databases/$(database)/documents/bookings/$(bookingId)).data.technicianId == request.auth.uid &&
+           get(/databases/$(database)/documents/bookings/$(bookingId)).data.status in ['ACCEPTED', 'IN_PROGRESS', 'WORK_COMPLETED', 'CONFIRMED'])
+        );
+
+        allow create: if isValidId(bookingId) &&
+          isVerifiedUser() &&
+          incoming().bookingId == bookingId &&
+          (incoming().customerId == request.auth.uid || isAdmin()) && (
+            (docId == 'details' && isValidBookingPrivateDetails(incoming())) ||
+            (docId == 'photo' && isValidBookingProtectedPhoto(incoming()))
+          );
+
+        allow update: if isValidId(bookingId) &&
+          isAdmin() && (
+            (docId == 'details' && isValidBookingPrivateDetails(incoming())) ||
+            (docId == 'photo' && isValidBookingProtectedPhoto(incoming()))
+          );
+      }
+    }
+
+    // 5. Coin Transactions Ledger (Immutable, non-negative balanceAfter, exact delta match)
+    match /coin_transactions/{txId} {
+      allow get: if isValidId(txId) && isVerifiedUser() && (
+        isAdmin() || resource.data.technicianId == request.auth.uid
+      );
+      allow list: if isVerifiedUser() && (
+        isAdmin() || resource.data.technicianId == request.auth.uid
+      );
+      allow create: if isValidId(txId) &&
+        isVerifiedUser() &&
+        !exists(/databases/$(database)/documents/coin_transactions/$(txId)) &&
+        isValidCoinTransaction(incoming()) &&
+        incoming().id == txId && (
+          // Case A: Admin grants 3 initial trial coins ONCE EVER
+          (isAdmin() &&
+           incoming().reason == 'INITIAL_APPROVAL_TRIAL_COINS' &&
+           txId == ('ctx_trial_' + incoming().technicianId) &&
+           incoming().delta == 3 &&
+           incoming().actorId == request.auth.uid &&
+           (!('trialCoinsGranted' in get(/databases/$(database)/documents/technicians/$(incoming().technicianId)).data) ||
+            get(/databases/$(database)/documents/technicians/$(incoming().technicianId)).data.trialCoinsGranted == false) &&
+           getAfter(/databases/$(database)/documents/technicians/$(incoming().technicianId)).data.trialCoinsGranted == true) ||
+          // Case B: Admin coin adjustment (ADMIN_RECHARGE or ADMIN_DEDUCTION)
+          (isAdmin() &&
+           incoming().reason in ['ADMIN_RECHARGE', 'ADMIN_DEDUCTION'] &&
+           incoming().actorId == request.auth.uid &&
+           ((incoming().reason == 'ADMIN_RECHARGE' && incoming().delta > 0) ||
+            (incoming().reason == 'ADMIN_DEDUCTION' && incoming().delta < 0)) &&
+           incoming().prevBalance is int &&
+           incoming().balanceAfter is int &&
+           incoming().balanceAfter >= 0 &&
+           incoming().balanceAfter == incoming().prevBalance + incoming().delta) ||
+          // Case C: Eligible Technician deducts 1 coin during atomic booking acceptance
+          (incoming().technicianId == request.auth.uid &&
+           incoming().actorId == request.auth.uid &&
+           incoming().delta == -1 &&
+           incoming().reason == 'JOB_ACCEPTANCE_DEDUCTION')
+        );
+    }
+
+    // 6. Booking Completion & Earnings Records (Keyed by bookingId -> recorded at most once ever)
+    match /booking_completions/{completionId} {
+      allow get: if isValidId(completionId) && isVerifiedUser() && (
+        isAdmin() ||
+        resource.data.customerId == request.auth.uid ||
+        resource.data.technicianId == request.auth.uid
+      );
+      allow list: if isVerifiedUser() && (
+        isAdmin() ||
+        resource.data.customerId == request.auth.uid ||
+        resource.data.technicianId == request.auth.uid
+      );
+      allow create: if isValidId(completionId) &&
+        isVerifiedUser() &&
+        !exists(/databases/$(database)/documents/booking_completions/$(completionId)) &&
+        isValidBookingCompletionRecord(incoming()) &&
+        incoming().id == completionId &&
+        incoming().bookingId == completionId &&
+        (incoming().customerId == request.auth.uid || isAdmin()) &&
+        getAfter(/databases/$(database)/documents/bookings/$(completionId)).data.status == 'CONFIRMED';
+    }
+
+    // 7. Customer Reviews (Deterministic ID rev_${bookingId} so each confirmed booking can be reviewed once)
+    match /reviews/{reviewId} {
+      allow get: if isValidId(reviewId) && isVerifiedUser();
+      allow list: if isVerifiedUser() && (
+        isAdmin() ||
+        resource.data.technicianId == request.auth.uid ||
+        resource.data.customerId == request.auth.uid ||
+        resource.data.rating >= 1
+      );
+      allow create: if isValidId(reviewId) &&
+        isVerifiedUser() &&
+        !exists(/databases/$(database)/documents/reviews/$(reviewId)) &&
+        isValidServiceReview(incoming()) &&
+        incoming().id == reviewId &&
+        incoming().customerId == request.auth.uid &&
+        exists(/databases/$(database)/documents/bookings/$(incoming().bookingId)) &&
+        get(/databases/$(database)/documents/bookings/$(incoming().bookingId)).data.customerId == request.auth.uid &&
+        get(/databases/$(database)/documents/bookings/$(incoming().bookingId)).data.status == 'CONFIRMED';
+    }
+
+    // 8. In-App Notifications
+    match /notifications/{notifId} {
+      allow get: if isValidId(notifId) && isVerifiedUser() && (
+        isAdmin() || resource.data.recipientId == request.auth.uid || resource.data.recipientId == 'ALL_TECHNICIANS' || resource.data.recipientId == 'ADMIN'
+      );
+      allow list: if isVerifiedUser() && (
+        isAdmin() || resource.data.recipientId == request.auth.uid || resource.data.recipientId == 'ALL_TECHNICIANS'
+      );
+      allow create: if isValidId(notifId) && isVerifiedUser() && isValidAppNotification(incoming()) && incoming().id == notifId;
+      allow update: if isValidId(notifId) && isVerifiedUser() &&
+        isValidAppNotification(incoming()) &&
+        (isAdmin() || existing().recipientId == request.auth.uid || existing().recipientId == 'ALL_TECHNICIANS') &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+    }
+
+    // 9. App Settings (Bapatla Service Areas & Defaults)
+    match /app_settings/{settingId} {
+      allow get, list: if true;
+      allow create: if isValidId(settingId) && isValidAppSettings(incoming()) && (
+        isAdmin() ||
+        (settingId == 'bapatla_config' && !exists(/databases/$(database)/documents/app_settings/bapatla_config))
+      );
+      allow update: if isValidId(settingId) && isAdmin() && isValidAppSettings(incoming());
+    }
+
+    // 10. Authorized Admins Roster (/admins/{adminId})
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && isVerifiedUser() && (request.auth.uid == adminId || isAdmin());
+      allow list: if isAdmin();
+      allow create, update: if isValidId(adminId) &&
+        isValidAdminRecord(incoming()) &&
+        incoming().uid == adminId && (
+          exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+          request.auth.token.admin == true ||
+          (request.auth.uid == adminId &&
+           request.auth.token.email_verified == true &&
+           request.auth.token.email == 'sumanth.bandela11@gmail.com')
+        );
+      allow delete: if isValidId(adminId) && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.admin == true
+      );
+    }
+
+    // 11. Admin Audit Logs (/admin_audit_logs/{auditId})
+    match /admin_audit_logs/{auditId} {
+      allow get, list: if isAdmin();
+      allow create: if isValidId(auditId) &&
+        isValidAdminAuditRecord(incoming()) &&
+        incoming().id == auditId &&
+        incoming().actorUid == request.auth.uid && (
+          isAdmin() ||
+          (isProvisionedOwnerBootstrapAccount() &&
+           incoming().action == 'ADMIN_PROVISIONED' &&
+           incoming().targetId == request.auth.uid &&
+           existsAfter(/databases/$(database)/documents/admins/$(request.auth.uid)))
+        );
+    }
+  }
+}

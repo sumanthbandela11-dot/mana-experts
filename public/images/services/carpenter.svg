@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+      <defs>
+        <linearGradient id="woodShop" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FDE68A"/>
+          <stop offset="50%" stop-color="#F59E0B" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#78350F" stop-opacity="0.45"/>
+        </linearGradient>
+        <linearGradient id="teakTable" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#92400E"/>
+          <stop offset="50%" stop-color="#B45309"/>
+          <stop offset="100%" stop-color="#78350F"/>
+        </linearGradient>
+      </defs>
+      <rect width="640" height="480" fill="#FEF3C7"/>
+      <rect width="640" height="480" fill="url(#woodShop)"/>
+      <!-- Wooden Door Frame & Teak Panel in Background -->
+      <rect x="55" y="40" width="175" height="290" rx="8" fill="#B45309" stroke="#78350F" stroke-width="8"/>
+      <rect x="78" y="65" width="129" height="105" rx="4" fill="#D97706"/>
+      <rect x="78" y="190" width="129" height="115" rx="4" fill="#D97706"/>
+      <!-- Carpenter Workbench & Teak Wood Plank -->
+      <rect x="40" y="330" width="560" height="36" rx="6" fill="url(#teakTable)"/>
+      <rect x="70" y="366" width="32" height="114" fill="#78350F"/>
+      <rect x="530" y="366" width="32" height="114" fill="#78350F"/>
+      <!-- Indian Carpenter Planing Wood with Hand Plane & Measuring Tape -->
+      <g transform="translate(415, 85)">
+        <path d="M-105,360 C-105,220 105,220 105,360 Z" fill="#D97706"/>
+        <path d="M-75,360 L-50,240 L50,240 L75,360 Z" fill="#10213A"/>
+        <rect x="-18" y="175" width="36" height="45" rx="12" fill="#B87644"/>
+        <ellipse cx="-6" cy="132" rx="50" ry="58" fill="#C6824E"/>
+        <path d="M-56,122 C-58,66 48,66 44,125 C32,95 -38,95 -56,122 Z" fill="#18181B"/>
+        <!-- Carpenter Pencil behind ear -->
+        <line x1="28" y1="112" x2="56" y2="96" stroke="#EF4444" stroke-width="6" stroke-linecap="round"/>
+        <ellipse cx="-22" cy="132" rx="5" ry="4" fill="#18181B"/>
+        <ellipse cx="8" cy="132" rx="5" ry="4" fill="#18181B"/>
+        <path d="M-18,158 Q-6,166 8,158" fill="none" stroke="#18181B" stroke-width="3.5" stroke-linecap="round"/>
+        <!-- Arms pushing Wood Hand Plane on Workbench -->
+        <path d="M-65,245 L-175,230" fill="none" stroke="#D97706" stroke-width="34" stroke-linecap="round"/>
+        <rect x="-245" y="215" width="95" height="30" rx="6" fill="#475569" stroke="#1E293B" stroke-width="3"/>
+        <rect x="-215" y="195" width="24" height="22" rx="4" fill="#92400E"/>
+        <!-- Wood Shavings Curls -->
+        <path d="M-255,235 Q-275,210 -290,235 T-320,230" fill="none" stroke="#FDE68A" stroke-width="6" stroke-linecap="round"/>
+        <path d="M-265,242 Q-285,222 -300,242" fill="none" stroke="#FCD34D" stroke-width="5" stroke-linecap="round"/>
+      </g>
+    </svg>

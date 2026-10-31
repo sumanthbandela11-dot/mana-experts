@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+      <rect width="640" height="480" fill="#F0F9FF"/>
+      <!-- Wall-Mounted RO Water Purifier with Dual Filter Cartridges -->
+      <g transform="translate(75, 55)">
+        <rect x="0" y="0" width="210" height="295" rx="20" fill="#FFFFFF" stroke="#BAE6FD" stroke-width="6"/>
+        <rect x="18" y="22" width="174" height="125" rx="12" fill="#0284C7" opacity="0.2"/>
+        <!-- Visible RO Sediment & Carbon Filter Cylinders -->
+        <rect x="42" y="34" width="48" height="100" rx="8" fill="#087F78"/>
+        <rect x="118" y="34" width="48" height="100" rx="8" fill="#0284C7"/>
+        <!-- Pure Water Tank Level -->
+        <rect x="24" y="165" width="162" height="95" rx="10" fill="#38BDF8" opacity="0.45"/>
+        <circle cx="105" cy="278" r="8" fill="#10B981"/>
+      </g>
+      <!-- Technician Testing Water TDS Meter & Filter Cartridge -->
+      <g transform="translate(450, 105)">
+        <path d="M-105,375 C-105,235 105,235 105,375 Z" fill="#087F78"/>
+        <rect x="-18" y="190" width="36" height="45" rx="12" fill="#B87644"/>
+        <ellipse cx="-6" cy="145" rx="52" ry="60" fill="#C6824E"/>
+        <path d="M-58,135 C-60,72 50,72 46,138 C34,102 -40,102 -58,135 Z" fill="#18181B"/>
+        <ellipse cx="-22" cy="142" rx="5" ry="4" fill="#18181B"/>
+        <ellipse cx="8" cy="142" rx="5" ry="4" fill="#18181B"/>
+        <path d="M-18,170 Q-6,178 8,170" fill="none" stroke="#18181B" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M-65,255 L-165,185" fill="none" stroke="#087F78" stroke-width="34" stroke-linecap="round"/>
+        <!-- Replacement RO Candle & Digital TDS Pen -->
+        <rect x="-200" y="135" width="34" height="88" rx="8" fill="#FFFFFF" stroke="#0284C7" stroke-width="4"/>
+      </g>
+    </svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+      <rect width="640" height="480" fill="#ECFDF5"/>
+      <!-- Bright Clean Living Room Sofa & Window -->
+      <rect x="45" y="50" width="240" height="150" rx="12" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="6"/>
+      <rect x="55" y="255" width="260" height="125" rx="22" fill="#087F78"/>
+      <rect x="35" y="295" width="300" height="95" rx="18" fill="#0F766E"/>
+      <!-- Cleaning Professional with Spray Bottle, Microfiber & Vacuum -->
+      <g transform="translate(455, 100)">
+        <path d="M-100,380 C-100,240 100,240 100,380 Z" fill="#087F78"/>
+        <!-- Protective Apron -->
+        <path d="M-60,265 L60,265 L75,380 L-75,380 Z" fill="#E8F7F4"/>
+        <rect x="-18" y="190" width="36" height="45" rx="12" fill="#B87644"/>
+        <ellipse cx="-6" cy="145" rx="50" ry="58" fill="#C6824E"/>
+        <path d="M-56,135 C-58,72 48,72 44,138 C32,102 -38,102 -56,135 Z" fill="#18181B"/>
+        <ellipse cx="-20" cy="142" rx="5" ry="4" fill="#18181B"/>
+        <ellipse cx="8" cy="142" rx="5" ry="4" fill="#18181B"/>
+        <path d="M-16,170 Q-4,178 10,170" fill="none" stroke="#18181B" stroke-width="3.5" stroke-linecap="round"/>
+        <!-- Yellow Cleaning Gloves & Spray Bottle -->
+        <path d="M-65,260 L-160,205" fill="none" stroke="#087F78" stroke-width="32" stroke-linecap="round"/>
+        <circle cx="-170" cy="200" r="18" fill="#FACC15"/>
+        <rect x="-205" y="165" width="32" height="58" rx="8" fill="#F97316"/>
+        <path d="M-195,165 L-195,145 L-220,145" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      </g>
+    </svg>

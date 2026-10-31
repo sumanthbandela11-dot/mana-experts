@@ -1,0 +1,9 @@
+{
+  "appId": "com.manaexperts.app",
+  "appName": "Mana Experts",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

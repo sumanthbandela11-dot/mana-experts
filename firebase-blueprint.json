@@ -1,0 +1,386 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Public profile and role metadata for a Mana Experts user, keyed by Firebase Auth UID.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "email": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "enum": ["CUSTOMER", "TECHNICIAN", "ADMIN"] },
+        "area": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "language": { "type": "string", "enum": ["en", "te"] },
+        "phoneVerified": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "role", "area", "language", "phoneVerified", "createdAt", "updatedAt"]
+    },
+    "UserPrivateContact": {
+      "title": "UserPrivateContact",
+      "description": "Isolated PII contact document for a user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "maxLength": 120 },
+        "phone": { "type": "string", "minLength": 10, "maxLength": 20 },
+        "defaultAddress": { "type": "string", "maxLength": 300 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "phone", "defaultAddress", "updatedAt"]
+    },
+    "TechnicianProfile": {
+      "title": "TechnicianProfile",
+      "description": "Technician profile, approval state, availability, durable trialCoinsGranted marker, coin balance, and verified earnings, keyed by Firebase Auth UID.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "phone": { "type": "string", "minLength": 10, "maxLength": 20 },
+        "skills": { "type": "array", "maxLength": 10 },
+        "area": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "experienceYears": { "type": "number" },
+        "bio": { "type": "string", "maxLength": 300 },
+        "approvalStatus": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "SUSPENDED"] },
+        "isAvailable": { "type": "boolean" },
+        "trialCoinsGranted": { "type": "boolean" },
+        "coinBalance": { "type": "number" },
+        "totalEarnings": { "type": "number" },
+        "completedJobs": { "type": "number" },
+        "ratingAvg": { "type": "number" },
+        "ratingCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "uid",
+        "name",
+        "phone",
+        "skills",
+        "area",
+        "experienceYears",
+        "bio",
+        "approvalStatus",
+        "isAvailable",
+        "coinBalance",
+        "totalEarnings",
+        "completedJobs",
+        "ratingAvg",
+        "ratingCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ServiceCategory": {
+      "title": "ServiceCategory",
+      "description": "Home service category configured by Admin.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "nameEn": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "nameTe": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "descriptionEn": { "type": "string", "maxLength": 240 },
+        "descriptionTe": { "type": "string", "maxLength": 240 },
+        "baseInspectionFee": { "type": "number" },
+        "iconName": { "type": "string", "maxLength": 40 },
+        "imageUrl": { "type": "string", "maxLength": 240 },
+        "enabled": { "type": "boolean" },
+        "sortOrder": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "nameEn",
+        "nameTe",
+        "descriptionEn",
+        "descriptionTe",
+        "baseInspectionFee",
+        "iconName",
+        "enabled",
+        "sortOrder"
+      ]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Service booking document without sensitive customer street address or phone.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerName": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "serviceId": { "type": "string", "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "serviceNameEn": { "type": "string", "maxLength": 80 },
+        "serviceNameTe": { "type": "string", "maxLength": 80 },
+        "generalArea": { "type": "string", "maxLength": 80 },
+        "problemDescription": { "type": "string", "minLength": 5, "maxLength": 500 },
+        "preferredDate": { "type": "string", "maxLength": 30 },
+        "preferredTimeSlot": { "type": "string", "maxLength": 40 },
+        "photoNote": { "type": "string", "maxLength": 200 },
+        "status": {
+          "type": "string",
+          "enum": ["PENDING", "ACCEPTED", "IN_PROGRESS", "WORK_COMPLETED", "CONFIRMED", "CANCELLED"]
+        },
+        "technicianId": { "type": "string", "maxLength": 128 },
+        "technicianName": { "type": "string", "maxLength": 80 },
+        "technicianPhone": { "type": "string", "maxLength": 20 },
+        "labourCharges": { "type": "number" },
+        "rated": { "type": "boolean" },
+        "hasUploadedPhoto": { "type": "boolean" },
+        "idempotencyKey": { "type": "string", "maxLength": 160 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "customerId",
+        "customerName",
+        "serviceId",
+        "serviceNameEn",
+        "serviceNameTe",
+        "generalArea",
+        "problemDescription",
+        "preferredDate",
+        "preferredTimeSlot",
+        "photoNote",
+        "status",
+        "technicianId",
+        "technicianName",
+        "technicianPhone",
+        "labourCharges",
+        "rated",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BookingPrivateDetails": {
+      "title": "BookingPrivateDetails",
+      "description": "Protected customer phone and full street address, revealed only to customer, admin, or assigned technician after acceptance.",
+      "type": "object",
+      "properties": {
+        "bookingId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerPhone": { "type": "string", "minLength": 10, "maxLength": 20 },
+        "fullAddress": { "type": "string", "minLength": 5, "maxLength": 300 },
+        "landmark": { "type": "string", "maxLength": 120 },
+        "villageOrWard": { "type": "string", "maxLength": 120 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["bookingId", "customerId", "customerPhone", "fullAddress", "landmark"]
+    },
+    "BookingProtectedPhoto": {
+      "title": "BookingProtectedPhoto",
+      "description": "Protected optional problem photo uploaded by customer, stored in /bookings/{bookingId}/private/photo and /users/{userId}/private/photo_draft.",
+      "type": "object",
+      "properties": {
+        "bookingId": { "type": "string", "maxLength": 128 },
+        "customerId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "fileName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "mimeType": { "type": "string", "enum": ["image/jpeg", "image/png", "image/webp"] },
+        "sizeBytes": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "dataUrl": { "type": "string", "maxLength": 700000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["bookingId", "customerId", "fileName", "mimeType", "sizeBytes", "dataUrl", "createdAt"]
+    },
+    "CoinTransaction": {
+      "title": "CoinTransaction",
+      "description": "Immutable ledger entry for trial coin grants, job acceptance debits, and admin adjustments.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "technicianId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "technicianName": { "type": "string", "maxLength": 80 },
+        "delta": { "type": "number" },
+        "prevBalance": { "type": "number" },
+        "balanceAfter": { "type": "number" },
+        "reason": { "type": "string", "maxLength": 160 },
+        "bookingId": { "type": "string", "maxLength": 128 },
+        "actorId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "idempotencyKey": { "type": "string", "maxLength": 160 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "technicianId", "technicianName", "delta", "reason", "bookingId", "createdAt"]
+    },
+    "BookingCompletionRecord": {
+      "title": "BookingCompletionRecord",
+      "description": "Immutable completion and earnings record keyed by bookingId, guaranteeing completion and technician earnings are recorded once ever.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "bookingId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "technicianId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "technicianName": { "type": "string", "maxLength": 80 },
+        "serviceId": { "type": "string", "maxLength": 64 },
+        "labourCharges": { "type": "number" },
+        "prevTechnicianEarnings": { "type": "number" },
+        "newTechnicianEarnings": { "type": "number" },
+        "prevCompletedJobs": { "type": "number" },
+        "newCompletedJobs": { "type": "number" },
+        "idempotencyKey": { "type": "string", "maxLength": 160 },
+        "confirmedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "bookingId",
+        "customerId",
+        "technicianId",
+        "technicianName",
+        "serviceId",
+        "labourCharges",
+        "prevTechnicianEarnings",
+        "newTechnicianEarnings",
+        "prevCompletedJobs",
+        "newCompletedJobs",
+        "idempotencyKey",
+        "confirmedAt"
+      ]
+    },
+    "ServiceReview": {
+      "title": "ServiceReview",
+      "description": "Customer rating and review submitted after work confirmation.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "bookingId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerName": { "type": "string", "maxLength": 80 },
+        "technicianId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "serviceId": { "type": "string", "maxLength": 64 },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "maxLength": 400 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "bookingId", "customerId", "customerName", "technicianId", "rating", "comment", "createdAt"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "In-app notification for booking events, approvals, and confirmations.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "recipientId": { "type": "string", "maxLength": 128 },
+        "titleEn": { "type": "string", "maxLength": 100 },
+        "titleTe": { "type": "string", "maxLength": 100 },
+        "messageEn": { "type": "string", "maxLength": 300 },
+        "messageTe": { "type": "string", "maxLength": 300 },
+        "type": { "type": "string", "maxLength": 40 },
+        "bookingId": { "type": "string", "maxLength": 128 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "recipientId", "titleEn", "titleTe", "messageEn", "messageTe", "type", "bookingId", "read", "createdAt"]
+    },
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "Global service areas and configuration managed by Admin.",
+      "type": "object",
+      "properties": {
+        "city": { "type": "string", "maxLength": 80 },
+        "serviceAreas": { "type": "array", "maxLength": 25 },
+        "trialCoinsForNewTech": { "type": "number" },
+        "coinCostPerLead": { "type": "number" },
+        "supportPhone": { "type": "string", "maxLength": 40 },
+        "supportWhatsApp": { "type": "string", "maxLength": 40 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["city", "serviceAreas"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted administrator record stored in /admins/{uid}.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "maxLength": 120 },
+        "provisionedBy": { "type": "string", "maxLength": 128 },
+        "addedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "addedAt"]
+    },
+    "AdminAuditRecord": {
+      "title": "AdminAuditRecord",
+      "description": "Immutable audit log entry for administrative actions.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "action": {
+          "type": "string",
+          "enum": [
+            "TECHNICIAN_APPROVED",
+            "TECHNICIAN_SUSPENDED",
+            "COIN_ADJUSTMENT",
+            "SERVICE_CREATED",
+            "SERVICE_TOGGLED",
+            "SERVICE_AREAS_UPDATED",
+            "ADMIN_PROVISIONED",
+            "LEGACY_IDENTITY_MIGRATED"
+          ]
+        },
+        "actorUid": { "type": "string", "maxLength": 128 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "summary": { "type": "string", "maxLength": 400 },
+        "idempotencyKey": { "type": "string", "maxLength": 160 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "action", "actorUid", "targetId", "summary", "idempotencyKey", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Public user profile and non-sensitive role information."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateContact" },
+      "description": "Isolated PII contact info for user."
+    },
+    "/technicians/{techId}": {
+      "schema": { "$ref": "#/entities/TechnicianProfile" },
+      "description": "Technician profile, approval status, durable trialCoinsGranted marker, coin balance, and verified earnings."
+    },
+    "/services/{serviceId}": {
+      "schema": { "$ref": "#/entities/ServiceCategory" },
+      "description": "Service categories available in Bapatla."
+    },
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/Booking" },
+      "description": "Service booking records without exact address or phone."
+    },
+    "/bookings/{bookingId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/BookingPrivateDetails" },
+      "description": "Protected customer contact and exact address revealed only after booking acceptance."
+    },
+    "/coin_transactions/{txId}": {
+      "schema": { "$ref": "#/entities/CoinTransaction" },
+      "description": "Transparent ledger of technician trial coin movements."
+    },
+    "/booking_completions/{completionId}": {
+      "schema": { "$ref": "#/entities/BookingCompletionRecord" },
+      "description": "Immutable completion and earnings record keyed by bookingId."
+    },
+    "/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/ServiceReview" },
+      "description": "Customer reviews for completed bookings."
+    },
+    "/notifications/{notifId}": {
+      "schema": { "$ref": "#/entities/AppNotification" },
+      "description": "In-app notifications for customers, technicians, and admins."
+    },
+    "/app_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/AppSettings" },
+      "description": "Global service areas and marketplace configuration."
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Explicitly authorized administrators."
+    },
+    "/admin_audit_logs/{auditId}": {
+      "schema": { "$ref": "#/entities/AdminAuditRecord" },
+      "description": "Immutable audit trail of administrative operations."
+    }
+  }
+}

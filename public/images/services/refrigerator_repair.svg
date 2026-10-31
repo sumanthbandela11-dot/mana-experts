@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+      <rect width="640" height="480" fill="#F3F4F6"/>
+      <!-- Double-Door Silver Refrigerator in Indian Kitchen -->
+      <rect x="55" y="30" width="235" height="420" rx="16" fill="#94A3B8" stroke="#475569" stroke-width="5"/>
+      <rect x="65" y="40" width="215" height="135" rx="10" fill="#CBD5E1"/>
+      <rect x="65" y="185" width="215" height="255" rx="10" fill="#E2E8F0"/>
+      <!-- Open Lower Fridge Compartment with Warm LED Light & Glass Shelves -->
+      <rect x="82" y="200" width="180" height="220" rx="6" fill="#F0F9FF"/>
+      <line x1="82" y1="255" x2="262" y2="255" stroke="#38BDF8" stroke-width="5"/>
+      <line x1="82" y1="315" x2="262" y2="315" stroke="#38BDF8" stroke-width="5"/>
+      <line x1="82" y1="370" x2="262" y2="370" stroke="#38BDF8" stroke-width="5"/>
+      <!-- Fridge Technician Checking Thermostat & Relay -->
+      <g transform="translate(445, 105)">
+        <path d="M-105,375 C-105,235 105,235 105,375 Z" fill="#087F78"/>
+        <rect x="-18" y="190" width="36" height="45" rx="12" fill="#B87644"/>
+        <ellipse cx="-6" cy="145" rx="52" ry="60" fill="#C6824E"/>
+        <path d="M-58,135 C-60,72 50,72 46,138 C34,102 -40,102 -58,135 Z" fill="#18181B"/>
+        <ellipse cx="-22" cy="142" rx="5" ry="4" fill="#18181B"/>
+        <ellipse cx="8" cy="142" rx="5" ry="4" fill="#18181B"/>
+        <path d="M-18,170 Q-6,178 8,170" fill="none" stroke="#18181B" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M-65,265 L-185,225" fill="none" stroke="#087F78" stroke-width="34" stroke-linecap="round"/>
+        <circle cx="-195" cy="222" r="16" fill="#C6824E"/>
+        <!-- Clamp Meter in Hand -->
+        <rect x="-235" y="198" width="46" height="28" rx="6" fill="#F97316"/>
+      </g>
+    </svg>
